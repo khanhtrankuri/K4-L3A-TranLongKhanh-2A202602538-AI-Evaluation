@@ -250,7 +250,12 @@ class OpenAIGenerator:
             raise RuntimeError("OPENAI_API_KEY is missing from .env")
         if not self.model:
             raise RuntimeError("OPENAI_MODEL is missing from .env")
-        self.client = OpenAI(api_key=api_key)
+        # Avoid an incompatibility between some OpenAI SDK/httpx2 and
+        # zstandard builds on Windows while leaving request semantics intact.
+        self.client = OpenAI(
+            api_key=api_key,
+            default_headers={"Accept-Encoding": "identity"},
+        )
         self.max_output_tokens = max_output_tokens
 
     def generate(self, prompt: str) -> str:
